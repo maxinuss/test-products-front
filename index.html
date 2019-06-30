@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Front</title>
+
+    <script src="https://code.jquery.com/jquery-3.3.1.js"></script>
+    <script src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/1.5.6/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdn.datatables.net/select/1.3.0/js/dataTables.select.min.js"></script>
+    <script src="lib/datatables/js/dataTables.editor.js"></script>
+
+
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.19/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/1.5.6/css/buttons.dataTables.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/select/1.3.0/css/select.dataTables.min.css">
+    <link rel="stylesheet" href="lib/datatables/css/editor.dataTables.css">
+</head>
+<body>
+
+<table id="example" class="display" cellspacing="0" width="100%">
+    <thead>
+    <tr>
+        <th>Id</th>
+        <th>Name</th>
+        <th>Price</th>
+        <th>Dollar price</th>
+    </tr>
+    </thead>
+</table>
+<script>
+  const apiUrl = "http://localhost:3047/api/v1";
+  let editor;
+
+
+  var ajaxBase = {
+    contentType: "application/json; charset=utf-8",
+    processData: "false",
+    data: function ( d ) {
+      const firstKey = Object.keys(d.data)[0];
+      return JSON.stringify( d.data[firstKey] );
+    }
+  };
+
+  $(document).ready(function() {
+    editor = new $.fn.dataTable.Editor( {
+      idSrc: 'id',
+      ajax: {
+        create: $.extend( true, {}, ajaxBase, {
+          type: 'POST',
+          url:  apiUrl + '/products',
+          success: function () {
+            $('#example').DataTable().ajax.reload(null, false)
+          }
+        }),
+        edit: $.extend( true, {}, ajaxBase, {
+          type: 'PUT',
+          url:  apiUrl + '/products/_id_',
+          success: function () {
+            $('#example').DataTable().ajax.reload(null, false)
+          }
+        }),
+        remove: $.extend( true, {}, ajaxBase, {
+          type: 'DELETE',
+          url:  apiUrl + '/products/_id_',
+          success: function () {
+            $('#example').DataTable().ajax.reload(null, false)
+          }
+        })
+      },
+      table: "#example",
+      fields: [ {
+        label: "Nombre: ",
+        name: "name"
+      }, {
+        label: "Precio: ",
+        name: "price"
+      }
+      ]
+    } );
+
+    $('#example').DataTable( {
+      dom: "Bfrtip",
+      ajax: apiUrl + '/products',
+      order: [[ 1, 'asc' ]],
+      columns: [
+        { data: "id" },
+        { data: "name" },
+        { data: "price" },
+        { data: "dollarPrice" }
+      ],
+      select: true,
+      buttons: [
+        { extend: "create", editor: editor },
+        { extend: "edit",   editor: editor },
+        { extend: "remove", editor: editor }
+      ]
+    } );
+  });
+</script>
+
+</body>
+</html>
